@@ -57,11 +57,11 @@ The city (or other values) can be used in selectors like:
 
 ### Field Settings
 
-At the moment there are no settings included.
+You can select which fields of the address field are mandatory. By default all fields are optional.
 
 ### To do
 
-I have planned to include settings for required fields, so you can select if an inputfield should be required or not.
+At the moment nothing planned.
 
 ## How to install
 
