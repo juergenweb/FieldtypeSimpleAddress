@@ -1,0 +1,238 @@
+<?php namespace ProcessWire;
+
+/**
+ * Inputfield to enter address data
+ *
+ * @author Jürgen Kern
+ * @license Licensed under MIT
+ */
+
+class InputfieldSimpleAddress extends Inputfield
+{
+
+    public static function getModuleInfo()
+    {
+        return [
+          'title' => 'Inputfield SimpleAddress',
+          'summary' => 'Renders various input fields for entering address data.',
+          'version' => 1,
+          'permanent' => false,
+          'requires' => [
+              'FieldtypeSimpleAddress',
+              'PHP>=7.0.0',
+              'ProcessWire>=3'
+            ],
+          'author' => 'Jürgen Kern'
+      ];
+    }
+
+
+    public function __construct()
+    {
+        // set default values
+        $this->set('input_street', '');
+        $this->set('input_number', '');
+        $this->set('input_postalcode', '');
+        $this->set('input_city', '');
+        $this->set('input_state', '');
+        $this->set('input_country', '');
+        parent::__construct();
+    }
+
+    // this is only static at the moment, but should be replaced by configuration checkboxes
+    public static function requiredInputs()
+    {
+      $requiredInputs = [
+        'street',
+        'number',
+        'postalcode',
+        'city'
+      ];
+      return $requiredInputs;
+    }
+
+
+    /**
+    * Per the Module interface, init() is called when the system is ready for API usage
+    */
+    public function init()
+    {
+        //Add CSS and JS files
+        $this->config->styles->add(config()->urls->{$this->className} . 'simpleaddress.css');
+        return parent::init();
+    }
+
+
+    /**
+    * Method to render the required asterisk on required inputfields
+    */
+    private function renderRequired(string $fieldname): string
+    {
+      if(in_array($fieldname, self::requiredInputs())){
+        return '*';
+      }
+      return '';
+    }
+
+
+    /**
+    * Render the inputs in the backend
+    * @return string
+    */
+    public function ___render(): string
+    {
+        $name = $this->attr('name'); // name of the inputfield
+
+        $required = self::requiredInputs();
+
+        $out = '';
+
+        $value = $this->attr('value') ? $this->attr('value') : new SimpleAddress();
+
+
+        $out .= '<div class="addressline">';
+          $out .= '<div class="inputfield_street">';
+            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">Strasse'.$this->renderRequired('street').'</label>';
+            $out .= '<input id="'.$name.'_street" type="text" name="'.$name.'_street" max="255" value="'.$value->street.'">';
+          $out .= '</div>';
+          $out .= '<div class="inputfield_number">';
+            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">Nr.'.$this->renderRequired('number').'</label>';
+            $out .= '<input id="'.$name.'_number" type="text" name="'.$name.'_number" max="255" value="'.$value->number.'">';
+          $out .= '</div>';
+        $out .= '</div>';
+
+        $out .= '<div class="addressline">';
+          $out .= '<div class="inputfield_postalcode" >';
+            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">PLZ'.$this->renderRequired('postalcode').'</label>';
+            $out .= '<input id="'.$name.'_postalcode" type="text" name="'.$name.'_postalcode" max="255" value="'.$value->postalcode.'">';
+          $out .= '</div>';
+          $out .= '<div class="inputfield_city" >';
+            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">Stadt'.$this->renderRequired('city').'</label>';
+            $out .= '<input id="'.$name.'_city" type="text" name="'.$name.'_city" max="255" value="'.$value->city.'">';
+          $out .= '</div>';
+        $out .= '</div>';
+
+        $out .= '<div class="addressline">';
+          $out .= '<div class="inputfield_state">';
+            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">Bundesland'.$this->renderRequired('state').'</label>';
+            $out .= '<input id="'.$name.'_state" type="text" name="'.$name.'_state" max="255" value="'.$value->state.'">';
+          $out .= '</div>';
+        $out .= '</div>';
+
+        $out .= '<div class="addressline">';
+          $out .= '<div class="inputfield_country">';
+            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">Land'.$this->renderRequired('country').'</label>';
+            $out .= '<input id="'.$name.'_country" type="text" name="'.$name.'_country" max="255" value="'.$value->country.'">';
+          $out .= '</div>';
+        $out .= '</div>';
+
+        return $out;
+
+    }
+
+
+    /**
+     * Process the input after a form submission($_POST or $_GET data) took place. Sanitize/validate it, and populate the value back to this inputfield.
+     * First line of defense for values coming directly from a form
+     * That function literally takes the value from $input and populates it to the 'value' attribute of the Inputfield object.
+     * @param WireInputData $input
+     * @return this
+     *
+     */
+    public function ___processInput(WireInputData $input)
+    {
+        $name = $this->attr('name'); // self choosen name of the inputfield
+        $value = $this->attr('value');
+
+        //create an array of the inputfield names to set processed values back afterwards
+        $inputfields = [ // name in db => name input element
+          'street' => $name . '_street',
+          'number' => $name . '_number',
+          'postalcode' => $name . '_postalcode',
+          'city' => $name . '_city',
+          'country' => $name . '_country',
+          'state' => $name . '_state'
+        ];
+
+        foreach ($inputfields as $key => $name) {
+          //sanitize all values as string
+          $value->set($key, (string) $input->$name);
+          $this->trackChange('value');
+        }
+
+        return $this;
+
+      }
+
+
+      /**
+       * Add additional configuration fields
+       *
+       * @return InputfieldWrapper
+       *
+       */
+      // Add additional configuration fields
+      public function ___getConfigInputfields(): InputfieldWrapper
+      {
+
+        //get all parent input fields
+          $inputfields = parent::___getConfigInputfields();
+
+          // get rid of required config field, because we cannot use it here
+          $inputfields->remove('required');
+
+          // checkbox field to make specific fields required -> work in progress
+          $f = $this->modules->get('InputfieldCheckboxes');
+          $f->label = _x('Required fields', 'simpleaddress');
+          $f->attr('name', 'input_required');
+          $options = [
+            'street' => _x('Street', 'simpleaddress'),
+            'number' => _x('Number', 'simpleaddress'),
+            'postalcode' => _x('Postalcode', 'simpleaddress'),
+            'city' => _x('City', 'simpleaddress'),
+            'state' => _x('State', 'simpleaddress'),
+            'country' => _x('Country', 'simpleaddress'),
+          ];
+
+          foreach($options as $value => $label) {
+            $checked = ($this->value == $value) ? 'checked' : '';//How to check if a checkbox was checked???????
+            $f->addOption($value, $label, ['checked' => $checked]);
+          }
+
+          $f->description = _x('If checked the input is required.', 'simpleaddress');
+          $inputfields->append($f);
+
+          // add inputfield markup for api notes
+          $f = $this->modules->get('InputfieldMarkup');
+          $f->label = _x('API Notes', 'simpleaddress');
+          $f->description = _x('The following can be used in your templates:', 'simpleaddress');
+          $f->value .= '<pre>';
+          $f->value .= '$page->' . $this->name . '->street' . PHP_EOL;
+          $f->value .= '$page->' . $this->name . '->number' . PHP_EOL;
+          $f->value .= '$page->' . $this->name . '->postalcode' . PHP_EOL;
+          $f->value .= '$page->' . $this->name . '->city' . PHP_EOL;
+          $f->value .= '$page->' . $this->name . '->state' . PHP_EOL;
+          $f->value .= '$page->' . $this->name . '->country' . PHP_EOL;
+          $f->value .= '$page->' . $this->name . PHP_EOL;
+          $f->value .= '</pre>';
+          $inputfields->add($f);
+
+          // output all input fields (parent and custom)
+          return $inputfields;
+      }
+
+
+      /**
+       * Allow these fields to get overwritten by user on per template base
+       * @param \ProcessWire\Field $field
+       * @return array
+       *
+       */
+      public function getConfigAllowContext(Field $field): array
+      {
+          return [
+            'input_required'
+          ];
+      }
+
+}

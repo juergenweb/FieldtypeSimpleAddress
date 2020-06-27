@@ -1,0 +1,25 @@
+/*  CSS for SimpleAddress Inputfield */
+
+@media (min-width: 576px) {
+
+  .inputfield_street, .inputfield_number, .inputfield_postalcode, .inputfield_city {
+    display:inline-block;
+  }
+
+  .inputfield_street, .inputfield_city {
+    width: 78%;
+  }
+
+  .inputfield_number, .inputfield_postalcode {
+    width: 20%;
+  }
+
+  .inputfield_postalcode {
+    margin-right:2%;
+  }
+
+  .inputfield_number {
+    margin-left:2%;
+  }
+
+}

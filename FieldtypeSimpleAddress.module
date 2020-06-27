@@ -1,0 +1,165 @@
+<?php namespace ProcessWire;
+
+/**
+ * Fieldtype SimpleAddress stores address data in the database
+ *
+ * @author Jürgen Kern
+ * @license Licensed under MIT
+ */
+
+class FieldtypeSimpleAddress extends Fieldtype
+{
+
+    public function __construct()
+    {
+        include_once(__DIR__ . '/SimpleAddress.php');
+        parent::__construct();
+    }
+
+
+    public static function getModuleInfo()
+    {
+        return array(
+            'title' => 'Fieldtype SimpleAddress',
+            'summary' => 'Fieldtype that stores various elements of an address.',
+            'version' => 1,
+            'installs' => 'InputfieldSimpleAddress',
+            'requires' => [
+                'PHP>=7.0.0',
+                'ProcessWire>=3'
+              ],
+            'author' => 'Jürgen Kern'
+        );
+    }
+
+    /**
+     * @param \ProcessWire\Page $page
+     * @param \ProcessWire\Field $field
+     * @return null|\ProcessWire\_Module|\ProcessWire\Inputfield|\ProcessWire\Module
+     * @throws \ProcessWire\WirePermissionException
+     * link the core inputfield to this fieldtype
+     */
+    public function getInputfield(Page $page, Field $field)
+    {
+        return $this->modules->get('InputfieldSimpleAddress');
+    }
+
+
+    /**
+     * @param \ProcessWire\Field $field
+     * @return null|\ProcessWire\_Module|\ProcessWire\Inputfield|\ProcessWire\Module
+     * User is not allowed to switch from this fieldtype to another
+     */
+    public function ___getCompatibleFieldtypes(Field $field)
+    {
+        return null;
+    }
+
+
+    /**
+     * Return the blank value for this fieldtype, whether that is a blank string, zero value, blank object or array
+     * In this case create a new instance of this fieldtype for wakeupValue
+     * @param Page $page
+     * @param Field $field
+     * @return object
+     *
+     */
+    public function getBlankValue(Page $page, Field $field)
+    {
+        return new SimpleAddress();
+    }
+
+
+   /**
+    * @param \ProcessWire\Page $page
+    * @param \ProcessWire\Field $field
+    * @param int|object|\ProcessWire\WireArray|string $value
+    * @return int|null|object|\ProcessWire\ObjectDimensions|\ProcessWire\WireArray|string
+    *
+    * Fieldtype sanitization/validation -> every value from this fieldtype that will be displayed on the page runs through this method
+    */
+     public function sanitizeValue(Page $page, Field $field, $value)
+     {
+         if (!$value instanceof SimpleAddress) {
+             $value = $this->getBlankValue($page, $field);
+         }
+         return $value;
+     }
+
+
+     /**
+      * Convert from DB storage to API value.
+      *
+      * @param Page $page
+      * @param Field $field
+      * @param string|int|array $value
+      * @return object $address
+      *
+      */
+      public function wakeupValue(Page $page, Field $field, $value)
+      {
+
+          $address = $this->getBlankValue($page, $field);
+
+          // sanitize and populate the address object for usage on frontend
+          $address->street = (string)$value['street'];
+          $address->number = (string)$value['number'];
+          $address->postalcode = (string)$value['postalcode'];
+          $address->city = (string)$value['city'];
+          $address->state = (string)$value['state'];
+          $address->country = (string)$value['country'];
+
+          return $address;
+      }
+
+
+      /**
+       * Convert from API to DB storage value (opposition of wakeupValue).
+       *
+       * @param Page $page
+       * @param Field $field
+       * @param string|int|array|object $value
+       * @return array
+       *
+       */
+      public function sleepValue(Page $page, Field $field, $value): array
+      {
+
+          // check if value is object of the correct class type and throw error if value is not of the right type
+          if (!$value instanceof SimpleAddress) {
+              throw new \Exception(_x('Expecting an instance of SimpleAddress', 'simpleaddress'));
+          }
+
+          // sanitzize values and prepare it for storage into the DB
+          $sleepValue = [
+              'street' => (string) $value->street,
+              'number' => (string) $value->number,
+              'postalcode' => (string) $value->postalcode,
+              'city' => (string) $value->city,
+              'state' => (string) $value->state,
+              'country' => (string) $value->country
+          ];
+
+          return $sleepValue;
+      }
+
+
+      /**
+       * @param \ProcessWire\Field $field
+       * @return null|\ProcessWire\_Module|\ProcessWire\Inputfield|\ProcessWire\Module
+       */
+      public function getDatabaseSchema(Field $field)
+      {
+          $schema = parent::getDatabaseSchema($field);
+
+          $schema['street'] = 'TINYTEXT DEFAULT NULL';
+          $schema['number'] = 'TINYTEXT  DEFAULT NULL';
+          $schema['postalcode'] = 'TINYTEXT DEFAULT NULL';
+          $schema['city'] = 'TINYTEXT DEFAULT NULL';
+          $schema['state'] = 'TINYTEXT DEFAULT NULL';
+          $schema['country'] = 'TINYTEXT DEFAULT NULL';
+
+          return $schema;
+      }
+
+}
