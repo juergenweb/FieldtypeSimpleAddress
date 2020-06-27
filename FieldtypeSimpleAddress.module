@@ -32,6 +32,7 @@ class FieldtypeSimpleAddress extends Fieldtype
         );
     }
 
+
     /**
      * @param \ProcessWire\Page $page
      * @param \ProcessWire\Field $field
