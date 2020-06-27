@@ -1,5 +1,5 @@
 # Processwire-Simple-Address-Inputfield-Fieldtype
-A simple inputfield to store an address. There is no special functionality inside, but the big advantage is, that you don´t need to use multiple fields in ProcessWire and each field of the address is fully searchable. Adding only 1 field is much more comfortable.
+A simple inputfield and fieldtype to store an address. There is no special functionality inside, but the big advantage is, that you don´t need to use multiple fields in ProcessWire and each field of the address is fully searchable. Adding only 1 field is much more comfortable.
 
 ## What it does
 
