@@ -43,17 +43,17 @@ This will output the following HTML:
 <address class="myclass">MyStreet 12 - 4020 Linz - Upper Austria - Austria</address>
 ```
 
-As you can see you have to options (optional) to control your output:
+As you can see you have 2 options (optional) to control your output:
 
 1. separator: This is the markup that should be between the various parts of an address 
-2. class: you can add a CSS-class if necessary to style your address markup
+2. class: You can add a CSS-class if necessary to style your address markup
 
 
 ### Use in selectors strings
 
 The city (or other values) can be used in selectors like:
 
-`$pages->find("address.city=New York");`
+`$pages->find("fieldname.city=New York");`
 
 ### Field Settings
 
