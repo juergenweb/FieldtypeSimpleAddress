@@ -8,7 +8,7 @@ This fieldtype let you enter various data of an address such as street, number, 
 
 ### Output the values in templates
 
-There's a property for each dimension
+There's a property for each address item
 
 ```
 echo $page->fieldname->street;
