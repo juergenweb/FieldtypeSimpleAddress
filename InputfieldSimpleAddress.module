@@ -39,15 +39,22 @@ class InputfieldSimpleAddress extends Inputfield
         parent::__construct();
     }
 
-    // this is only static at the moment, but should be replaced by configuration checkboxes
-    public static function requiredInputs()
+    public static function getLabels()
     {
-      $requiredInputs = [
-        'street',
-        'number',
-        'postalcode',
-        'city'
+      return [
+        'street' => _x('Street', 'simpleaddress'),
+        'number' => _x('Number', 'simpleaddress'),
+        'postalcode' => _x('Postalcode', 'simpleaddress'),
+        'city' => _x('City', 'simpleaddress'),
+        'state' => _x('State', 'simpleaddress'),
+        'country' => _x('Country', 'simpleaddress')
       ];
+    }
+
+    // get all field which are required from configuration settings
+    private function requiredInputs()
+    {
+      $requiredInputs = (isset($this->hasField->data['input_required'])) ? $this->hasField->data['input_required'] : [];
       return $requiredInputs;
     }
 
@@ -68,7 +75,7 @@ class InputfieldSimpleAddress extends Inputfield
     */
     private function renderRequired(string $fieldname): string
     {
-      if(in_array($fieldname, self::requiredInputs())){
+      if(in_array($fieldname, $this->requiredInputs())){
         return '*';
       }
       return '';
@@ -82,46 +89,44 @@ class InputfieldSimpleAddress extends Inputfield
     public function ___render(): string
     {
         $name = $this->attr('name'); // name of the inputfield
-
         $required = self::requiredInputs();
 
         $out = '';
 
         $value = $this->attr('value') ? $this->attr('value') : new SimpleAddress();
 
-
         $out .= '<div class="addressline">';
           $out .= '<div class="inputfield_street">';
-            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">Strasse'.$this->renderRequired('street').'</label>';
+            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['street'].$this->renderRequired('street').'</label>';
             $out .= '<input id="'.$name.'_street" type="text" name="'.$name.'_street" max="255" value="'.$value->street.'">';
           $out .= '</div>';
           $out .= '<div class="inputfield_number">';
-            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">Nr.'.$this->renderRequired('number').'</label>';
+            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['number'].$this->renderRequired('number').'</label>';
             $out .= '<input id="'.$name.'_number" type="text" name="'.$name.'_number" max="255" value="'.$value->number.'">';
           $out .= '</div>';
         $out .= '</div>';
 
         $out .= '<div class="addressline">';
           $out .= '<div class="inputfield_postalcode" >';
-            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">PLZ'.$this->renderRequired('postalcode').'</label>';
+            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['postalcode'].$this->renderRequired('postalcode').'</label>';
             $out .= '<input id="'.$name.'_postalcode" type="text" name="'.$name.'_postalcode" max="255" value="'.$value->postalcode.'">';
           $out .= '</div>';
           $out .= '<div class="inputfield_city" >';
-            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">Stadt'.$this->renderRequired('city').'</label>';
+            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['city'].$this->renderRequired('city').'</label>';
             $out .= '<input id="'.$name.'_city" type="text" name="'.$name.'_city" max="255" value="'.$value->city.'">';
           $out .= '</div>';
         $out .= '</div>';
 
         $out .= '<div class="addressline">';
           $out .= '<div class="inputfield_state">';
-            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">Bundesland'.$this->renderRequired('state').'</label>';
+            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['state'].$this->renderRequired('state').'</label>';
             $out .= '<input id="'.$name.'_state" type="text" name="'.$name.'_state" max="255" value="'.$value->state.'">';
           $out .= '</div>';
         $out .= '</div>';
 
         $out .= '<div class="addressline">';
           $out .= '<div class="inputfield_country">';
-            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">Land'.$this->renderRequired('country').'</label>';
+            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['country'].$this->renderRequired('country').'</label>';
             $out .= '<input id="'.$name.'_country" type="text" name="'.$name.'_country" max="255" value="'.$value->country.'">';
           $out .= '</div>';
         $out .= '</div>';
@@ -144,6 +149,8 @@ class InputfieldSimpleAddress extends Inputfield
         $name = $this->attr('name'); // self choosen name of the inputfield
         $value = $this->attr('value');
 
+        $requiredFields = $this->requiredInputs();
+
         //create an array of the inputfield names to set processed values back afterwards
         $inputfields = [ // name in db => name input element
           'street' => $name . '_street',
@@ -155,10 +162,21 @@ class InputfieldSimpleAddress extends Inputfield
         ];
 
         foreach ($inputfields as $key => $name) {
-          //sanitize all values as string
+          //check for required inputs
+          $label = $this->getLabels()[$key];
+          //sanitize all values as string and put them back to the input
           $value->set($key, (string) $input->$name);
+          //track changes in the values
           $this->trackChange('value');
+          //start validation
+          if(in_array($key,$requiredFields)){
+            if(empty($value[$key])){
+              $this->error(sprintf(_x('Field "%s" is required', 'simpleaddress'), $label));
+            }
+          }
+
         }
+
 
         return $this;
 
@@ -181,7 +199,7 @@ class InputfieldSimpleAddress extends Inputfield
           // get rid of required config field, because we cannot use it here
           $inputfields->remove('required');
 
-          // checkbox field to make specific fields required -> work in progress
+          // checkbox field to make specific fields required
           $f = $this->modules->get('InputfieldCheckboxes');
           $f->label = _x('Required fields', 'simpleaddress');
           $f->attr('name', 'input_required');
@@ -191,14 +209,13 @@ class InputfieldSimpleAddress extends Inputfield
             'postalcode' => _x('Postalcode', 'simpleaddress'),
             'city' => _x('City', 'simpleaddress'),
             'state' => _x('State', 'simpleaddress'),
-            'country' => _x('Country', 'simpleaddress'),
+            'country' => _x('Country', 'simpleaddress')
           ];
-
+          $values = (isset($this->hasField->data['input_required'])) ? $this->hasField->data['input_required'] : [];
           foreach($options as $value => $label) {
-            $checked = ($this->value == $value) ? 'checked' : '';//How to check if a checkbox was checked???????
+            $checked = (in_array($value,$values)) ? 'checked' : '';
             $f->addOption($value, $label, ['checked' => $checked]);
           }
-
           $f->description = _x('If checked the input is required.', 'simpleaddress');
           $inputfields->append($f);
 
