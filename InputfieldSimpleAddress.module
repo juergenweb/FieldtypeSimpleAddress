@@ -29,7 +29,7 @@ class InputfieldSimpleAddress extends Inputfield
 
     public function __construct()
     {
-        // set default values
+        // set default values for inputfield properties
         $this->set('input_street', '');
         $this->set('input_number', '');
         $this->set('input_postalcode', '');
@@ -37,6 +37,18 @@ class InputfieldSimpleAddress extends Inputfield
         $this->set('input_state', '');
         $this->set('input_country', '');
         parent::__construct();
+    }
+
+    /**
+    * Per the Module interface, init() is called when the system is ready for API usage
+    */
+    public function init()
+    {
+        //Add CSS and JS files
+        $this->config->styles->add(config()->urls->{$this->className} . 'simpleaddress.css');
+        //Set default values for field configuration properties to make them reachable
+        $this->set('input_required', []);
+        return parent::init();
     }
 
     public static function getLabels()
@@ -51,31 +63,13 @@ class InputfieldSimpleAddress extends Inputfield
       ];
     }
 
-    // get all field which are required from configuration settings
-    private function requiredInputs()
-    {
-      $requiredInputs = (isset($this->hasField->data['input_required'])) ? $this->hasField->data['input_required'] : [];
-      return $requiredInputs;
-    }
-
 
     /**
-    * Per the Module interface, init() is called when the system is ready for API usage
-    */
-    public function init()
-    {
-        //Add CSS and JS files
-        $this->config->styles->add(config()->urls->{$this->className} . 'simpleaddress.css');
-        return parent::init();
-    }
-
-
-    /**
-    * Method to render the required asterisk on required inputfields
+    * Method to render the required asterisk on required inputfields depending on configuration
     */
     private function renderRequired(string $fieldname): string
     {
-      if(in_array($fieldname, $this->requiredInputs())){
+      if(in_array($fieldname, $this->input_required)){
         return '*';
       }
       return '';
@@ -89,7 +83,6 @@ class InputfieldSimpleAddress extends Inputfield
     public function ___render(): string
     {
         $name = $this->attr('name'); // name of the inputfield
-        $required = self::requiredInputs();
 
         $out = '';
 
@@ -149,8 +142,6 @@ class InputfieldSimpleAddress extends Inputfield
         $name = $this->attr('name'); // self choosen name of the inputfield
         $value = $this->attr('value');
 
-        $requiredFields = $this->requiredInputs();
-
         //create an array of the inputfield names to set processed values back afterwards
         $inputfields = [ // name in db => name input element
           'street' => $name . '_street',
@@ -169,14 +160,12 @@ class InputfieldSimpleAddress extends Inputfield
           //track changes in the values
           $this->trackChange('value');
           //start validation
-          if(in_array($key,$requiredFields)){
+          if(in_array($key, $this->input_required)){
             if(empty($value[$key])){
               $this->error(sprintf(_x('Field "%s" is required', 'simpleaddress'), $label));
             }
           }
-
         }
-
 
         return $this;
 
