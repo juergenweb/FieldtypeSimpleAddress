@@ -1,5 +1,9 @@
 /*  CSS for SimpleAddress Inputfield */
 
+.addressline label.InputfieldHeader {
+  padding-left:0;
+}
+
 @media (min-width: 576px) {
 
   .inputfield_street, .inputfield_number, .inputfield_postalcode, .inputfield_city, .inputfield_lat, .inputfield_lng {
