@@ -2,6 +2,7 @@
 
 .addressline label.InputfieldHeader {
   padding-left:0;
+  background:none;
 }
 
 @media (min-width: 576px) {
