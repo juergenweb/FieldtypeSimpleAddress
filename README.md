@@ -1,13 +1,13 @@
 # Processwire-Simple-Address-Inputfield-Fieldtype
-A simple inputfield and fieldtype to store an address and optional geo-coordinates.
-There is no special functionality inside, but the big advantage is, that you don´t need to use multiple fields in ProcessWire and each field of the address is fully searchable. 
+A simple inputfield and fieldtype to store an address and optional geo-coordinates.<br />
+There is no special functionality inside, but the big advantage is, that you don´t need to use multiple fields in ProcessWire and each field of the address is fully searchable.<br /> 
 As an addition you can add longitude and latitude of an address for usage in maps too. 
 
 The coordinates will not be geocoded automatically, so you have to enter them manually. The advantage is that you do not need an API-Key or a registration at Google or other providers, so you are completely independent and you can use these coordinates in your prefered maps.
 
 ## What it does
 
-This fieldtype let you enter various data of an address such as street, number, postalcode,.... and optional latitude and longitude (not visible in the image below).
+This fieldtype let you enter various data of an address such as street, number, postalcode,.... and optional latitude and longitude (not visible in the image below, but they will be displayed below the last inputfield if they are enabled in the configuration settings of this inputfield).
 ![alt text](https://github.com/juergenweb/Processwire-Simple-Address-Inputfield-Fieldtype/blob/master/SimpleAddress.png?raw=true)
 
 ### Output the values in templates
