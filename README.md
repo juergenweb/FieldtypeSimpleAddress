@@ -51,6 +51,10 @@ This will output the following HTML:
 ```
 <address class="myclass">MyStreet 12 - 4020 Linz - Upper Austria - Austria</address>
 ```
+As you can see you have 2 options (optional) to control your output:
+
+1. separator: This is the markup that should be between the various parts of an address (fe a HTML tag like <br /> or a simple '-')
+2. class: You can add a CSS-class if necessary to style your address markup later on
 
 There is also a method to get latitude and longitude in one string
 
@@ -63,13 +67,7 @@ This will output fe
 ```
 41.12345678, 23.987654
 ```
-and can be used im maps just like Leaflet Map or others.
-
-
-As you can see you have 2 options (optional) to control your output:
-
-1. separator: This is the markup that should be between the various parts of an address 
-2. class: You can add a CSS-class if necessary to style your address markup
+and can be used in maps just like Leaflet Map or others.
 
 
 ### Use in selectors strings
