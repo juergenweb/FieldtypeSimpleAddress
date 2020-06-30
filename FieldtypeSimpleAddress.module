@@ -33,6 +33,40 @@ class FieldtypeSimpleAddress extends Fieldtype
     }
 
 
+    public function init()
+    {
+        //Hook method to uncheck checkboxes of latitude and longitude before field save if they should not be displayed in the inputfield
+        $this->addHookBefore('ProcessField::fieldSaved', function (HookEvent $event) {
+
+            $field = $event->arguments(0);
+
+            if ($field->type instanceof FieldtypeSimpleAddress) {
+
+                $coordinates = $field->input_coordinates;
+                $req = $field->input_required;
+
+                // Uncheck checkboxes of lat and lng if coordinates are disabled
+                if (!$coordinates) {
+                    if(in_array('lat', $req) || in_array('lng', $req)){
+                      //get keys of lat and lng
+                      $keyLat = array_search('lat', $req);
+                      $keyLng = array_search('lng', $req);
+                      //remove them from the required array
+                      unset($req[$keyLat]);
+                      unset($req[$keyLng]);
+                      //set the new array as value of field input_required
+                      $field->input_required = $req;
+                      // Populate modified arguments back
+                      $event->arguments(0, $field);
+                      $field->save(); //save the changes in inputfield configuration
+                    }
+                }
+
+            }
+        });
+    }
+
+
     /**
      * @param \ProcessWire\Page $page
      * @param \ProcessWire\Field $field
@@ -109,7 +143,8 @@ class FieldtypeSimpleAddress extends Fieldtype
           $address->city = (string)$value['city'];
           $address->state = (string)$value['state'];
           $address->country = (string)$value['country'];
-
+          $address->lat = (string)$value['lat'];
+          $address->lng = (string)$value['lng'];
           return $address;
       }
 
@@ -133,12 +168,14 @@ class FieldtypeSimpleAddress extends Fieldtype
 
           // sanitzize values and prepare it for storage into the DB
           $sleepValue = [
-              'street' => (string) $value->street,
-              'number' => (string) $value->number,
-              'postalcode' => (string) $value->postalcode,
-              'city' => (string) $value->city,
-              'state' => (string) $value->state,
-              'country' => (string) $value->country
+              'street' => (string) $value->street ? $value->street : NULL,
+              'number' => (string) $value->number ? $value->number : NULL,
+              'postalcode' => (string) $value->postalcode ? $value->postalcode : NULL,
+              'city' => (string) $value->city ? $value->city : NULL,
+              'state' => (string) $value->state ? $value->state : NULL,
+              'country' => (string) $value->country ? $value->country : NULL,
+              'lat' => (float) $value->lat ? $value->lat : NULL,
+              'lng' => (float) $value->lng ? $value->lng : NULL,
           ];
 
           return $sleepValue;
@@ -159,7 +196,8 @@ class FieldtypeSimpleAddress extends Fieldtype
           $schema['city'] = 'TINYTEXT DEFAULT NULL';
           $schema['state'] = 'TINYTEXT DEFAULT NULL';
           $schema['country'] = 'TINYTEXT DEFAULT NULL';
-
+          $schema['lat'] = 'FLOAT DEFAULT NULL';
+          $schema['lng'] = 'FLOAT DEFAULT NULL';
           return $schema;
       }
 
