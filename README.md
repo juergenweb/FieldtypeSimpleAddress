@@ -1,6 +1,7 @@
 # Processwire-Simple-Address-Inputfield-Fieldtype
-A simple inputfield and fieldtype to store an address. There is no special functionality inside, but the big advantage is, that you don´t need to use multiple fields in ProcessWire and each field of the address is fully searchable. Adding only 1 field is much more comfortable.
-As an addition you can add longitude and latitude of an address for usage in maps. 
+A simple inputfield and fieldtype to store an address and optional geo-coordinates.
+There is no special functionality inside, but the big advantage is, that you don´t need to use multiple fields in ProcessWire and each field of the address is fully searchable. 
+As an addition you can add longitude and latitude of an address for usage in maps too. 
 
 The coordinates will not be geocoded automatically, so you have to enter them manually. The advantage is that you do not need an API-Key or a registration at Google or other providers, so you are completely independent and you can use these coordinates in your prefered maps.
 
@@ -79,7 +80,9 @@ The city (or other values) can be used in selectors like:
 
 ### Field Settings
 
-You can select which fields of the address field are mandatory. By default all fields are optional.
+You can select which fields of the address (and coordinates) are mandatory. By default all fields are optional.
+You can also choose if coordinate fields should be displayed in the inputfield too.
+
 
 ### To do
 
