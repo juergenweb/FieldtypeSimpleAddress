@@ -1,7 +1,7 @@
 <?php namespace ProcessWire;
 
 /**
- * Inputfield to enter address data
+ * Inputfield to enter address data and coordinates
  *
  * @author Jürgen Kern
  * @license Licensed under MIT
@@ -36,6 +36,10 @@ class InputfieldSimpleAddress extends Inputfield
         $this->set('input_city', '');
         $this->set('input_state', '');
         $this->set('input_country', '');
+        $this->set('input_lat', '');
+        $this->set('input_lng', '');
+        // set default values for field configuration
+        $this->set('input_coordinates', false);
         parent::__construct();
     }
 
@@ -46,8 +50,10 @@ class InputfieldSimpleAddress extends Inputfield
     {
         //Add CSS and JS files
         $this->config->styles->add(config()->urls->{$this->className} . 'simpleaddress.css');
+        $this->config->scripts->add(config()->urls->{$this->className} . 'simpleaddress.js');
         //Set default values for field configuration properties to make them reachable
         $this->set('input_required', []);
+
         return parent::init();
     }
 
@@ -59,7 +65,9 @@ class InputfieldSimpleAddress extends Inputfield
         'postalcode' => _x('Postalcode', 'simpleaddress'),
         'city' => _x('City', 'simpleaddress'),
         'state' => _x('State', 'simpleaddress'),
-        'country' => _x('Country', 'simpleaddress')
+        'country' => _x('Country', 'simpleaddress'),
+        'lat' => _x('Latitude', 'simpleaddress'),
+        'lng' => _x('Longitude', 'simpleaddress'),
       ];
     }
 
@@ -124,6 +132,20 @@ class InputfieldSimpleAddress extends Inputfield
           $out .= '</div>';
         $out .= '</div>';
 
+        if($this->get('input_coordinates')){
+          $out .= '<div id="latlng" class="addressline">';
+            $out .= '<div class="inputfield_lat">';
+              $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['lat'].$this->renderRequired('lat').'</label>';
+              $out .= '<input id="'.$name.'_lat" type="text" name="'.$name.'_lat" max="255" value="'.$value->lat.'">';
+            $out .= '</div>';
+
+            $out .= '<div class="inputfield_lng">';
+              $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['lng'].$this->renderRequired('lng').'</label>';
+              $out .= '<input id="'.$name.'_lat" type="text" name="'.$name.'_lng" max="255" value="'.$value->lng.'">';
+            $out .= '</div>';
+            $out .= '<p>'.sprintf(_x('You can use fe %s to get your coordinates.', 'simpleaddress'), '<a href="https://www.gps-coordinates.net/" target="_blank">www.gps-coordinates.net</a>').'</p>';
+          $out .= '</div>';
+        }
         return $out;
 
     }
@@ -141,6 +163,8 @@ class InputfieldSimpleAddress extends Inputfield
     {
         $name = $this->attr('name'); // self choosen name of the inputfield
         $value = $this->attr('value');
+        $coordinates = $this->input_coordinates;
+
 
         //create an array of the inputfield names to set processed values back afterwards
         $inputfields = [ // name in db => name input element
@@ -149,7 +173,9 @@ class InputfieldSimpleAddress extends Inputfield
           'postalcode' => $name . '_postalcode',
           'city' => $name . '_city',
           'country' => $name . '_country',
-          'state' => $name . '_state'
+          'state' => $name . '_state',
+          'lat' => $name . '_lat',
+          'lng' => $name . '_lng',
         ];
 
         foreach ($inputfields as $key => $name) {
@@ -163,6 +189,7 @@ class InputfieldSimpleAddress extends Inputfield
           if(in_array($key, $this->input_required)){
             if(empty($value[$key])){
               $this->error(sprintf(_x('Field "%s" is required', 'simpleaddress'), $label));
+
             }
           }
         }
@@ -188,25 +215,27 @@ class InputfieldSimpleAddress extends Inputfield
           // get rid of required config field, because we cannot use it here
           $inputfields->remove('required');
 
+          // checkbox field to configure if coordinate fields should be displayed or not
+          $f = $this->modules->get('InputfieldCheckbox');
+          $f->label = _x('Show coordinate fields (latitude and longitude)', 'simpleaddress');
+          $f->checkboxLabel = _x('Show fields', 'simpleaddress');
+          $f->attr('name', 'input_coordinates');
+          $f->attr('checked', $this->input_coordinates == '1' ? 'checked' : '');
+          $f->description = _x('If checked 2 additional fields for entering longitude and latitude will be displayed.', 'dimensions');
+          $inputfields->append($f);
+
           // checkbox field to make specific fields required
           $f = $this->modules->get('InputfieldCheckboxes');
           $f->label = _x('Required fields', 'simpleaddress');
           $f->attr('name', 'input_required');
-          $options = [
-            'street' => _x('Street', 'simpleaddress'),
-            'number' => _x('Number', 'simpleaddress'),
-            'postalcode' => _x('Postalcode', 'simpleaddress'),
-            'city' => _x('City', 'simpleaddress'),
-            'state' => _x('State', 'simpleaddress'),
-            'country' => _x('Country', 'simpleaddress')
-          ];
-          $values = (isset($this->hasField->data['input_required'])) ? $this->hasField->data['input_required'] : [];
-          foreach($options as $value => $label) {
-            $checked = (in_array($value,$values)) ? 'checked' : '';
+          foreach($this->getLabels() as $value => $label) {
+            $checked = (in_array($value,$this->input_required)) ? 'checked' : '';
             $f->addOption($value, $label, ['checked' => $checked]);
           }
           $f->description = _x('If checked the input is required.', 'simpleaddress');
           $inputfields->append($f);
+
+
 
           // add inputfield markup for api notes
           $f = $this->modules->get('InputfieldMarkup');
@@ -219,6 +248,8 @@ class InputfieldSimpleAddress extends Inputfield
           $f->value .= '$page->' . $this->name . '->city' . PHP_EOL;
           $f->value .= '$page->' . $this->name . '->state' . PHP_EOL;
           $f->value .= '$page->' . $this->name . '->country' . PHP_EOL;
+          $f->value .= '$page->' . $this->name . '->lat' . PHP_EOL;
+          $f->value .= '$page->' . $this->name . '->lng' . PHP_EOL;
           $f->value .= '$page->' . $this->name . PHP_EOL;
           $f->value .= '</pre>';
           $inputfields->add($f);
@@ -237,7 +268,8 @@ class InputfieldSimpleAddress extends Inputfield
       public function getConfigAllowContext(Field $field): array
       {
           return [
-            'input_required'
+            'input_coordinates',
+            'input_required',
           ];
       }
 
