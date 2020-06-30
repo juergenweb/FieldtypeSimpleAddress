@@ -2,12 +2,16 @@
 
 @media (min-width: 576px) {
 
-  .inputfield_street, .inputfield_number, .inputfield_postalcode, .inputfield_city {
+  .inputfield_street, .inputfield_number, .inputfield_postalcode, .inputfield_city, .inputfield_lat, .inputfield_lng {
     display:inline-block;
   }
 
   .inputfield_street, .inputfield_city {
     width: 78%;
+  }
+
+  .inputfield_lat, .inputfield_lng {
+    width: 49%;
   }
 
   .inputfield_number, .inputfield_postalcode {
@@ -20,6 +24,14 @@
 
   .inputfield_number {
     margin-left:2%;
+  }
+
+  .inputfield_lat {
+    margin-right:1%;
+  }
+
+  .inputfield_lng {
+    margin-left:1%;
   }
 
 }
