@@ -7,7 +7,7 @@
  * @license Licensed under MIT
  */
 
-class InputfieldSimpleAddress extends Inputfield
+class FieldtypeSimpleAddress extends Inputfield
 {
 
     public static function getModuleInfo()
