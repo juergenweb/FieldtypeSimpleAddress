@@ -98,6 +98,15 @@ class SimpleAddress extends WireData
         return $out;
     }
 
+    public function renderLatLng(): string
+    {
+      if($this->lat || $this->lng){
+        $coordinates = [$this->lat,$this->lng];
+        return implode(', ', $coordinates);
+      }
+      return '';
+    }
+
     public function __toString()
     {
         return $this->renderAddress();
