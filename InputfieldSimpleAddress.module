@@ -14,9 +14,11 @@ class InputfieldSimpleAddress extends Inputfield
     {
         return [
           'title' => 'Inputfield SimpleAddress',
-          'summary' => 'Renders various input fields for entering address data.',
+          'summary' => 'An inputfield for entering various data including coordinates of an address.',
           'version' => 1,
           'permanent' => false,
+          'href' => 'https://github.com/juergenweb/Processwire-Simple-Address-Inputfield-Fieldtype',
+          'icon' => 'home',
           'requires' => [
               'FieldtypeSimpleAddress',
               'PHP>=7.0.0',
@@ -48,16 +50,18 @@ class InputfieldSimpleAddress extends Inputfield
     */
     public function init()
     {
+        $info = $this->getModuleInfo();
+        $version = $info['version'];
         //Add CSS and JS files
-        $this->config->styles->add(config()->urls->{$this->className} . 'simpleaddress.css');
-        $this->config->scripts->add(config()->urls->{$this->className} . 'simpleaddress.js');
+        $this->config->styles->add(config()->urls->{$this->className} . 'simpleaddress.css?v='.$version);
+        $this->config->scripts->add(config()->urls->{$this->className} . 'simpleaddress.js?v='.$version);
         //Set default values for field configuration properties to make them reachable
         $this->set('input_required', []);
 
         return parent::init();
     }
 
-    public static function getLabels()
+    public function getLabels()
     {
       return [
         'street' => _x('Street', 'simpleaddress'),
@@ -73,12 +77,14 @@ class InputfieldSimpleAddress extends Inputfield
 
 
     /**
-    * Method to render the required asterisk on required inputfields depending on configuration
+    * Method to add required class on inputfields depending on configuration
+    * @param string $fieldname
+    * @return string
     */
     private function renderRequired(string $fieldname): string
     {
       if(in_array($fieldname, $this->input_required)){
-        return '*';
+        return ' InputfieldStateRequired';
       }
       return '';
     }
@@ -97,50 +103,50 @@ class InputfieldSimpleAddress extends Inputfield
         $value = $this->attr('value') ? $this->attr('value') : new SimpleAddress();
 
         $out .= '<div class="addressline">';
-          $out .= '<div class="inputfield_street">';
-            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['street'].$this->renderRequired('street').'</label>';
+          $out .= '<div class="inputfield_street'.$this->renderRequired('street').'">';
+            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['street'].'</label>';
             $out .= '<input id="'.$name.'_street" type="text" name="'.$name.'_street" max="255" value="'.$value->street.'">';
           $out .= '</div>';
-          $out .= '<div class="inputfield_number">';
-            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['number'].$this->renderRequired('number').'</label>';
+          $out .= '<div class="inputfield_number'.$this->renderRequired('number').'">';
+            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['number'].'</label>';
             $out .= '<input id="'.$name.'_number" type="text" name="'.$name.'_number" max="255" value="'.$value->number.'">';
           $out .= '</div>';
         $out .= '</div>';
 
         $out .= '<div class="addressline">';
-          $out .= '<div class="inputfield_postalcode" >';
-            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['postalcode'].$this->renderRequired('postalcode').'</label>';
+          $out .= '<div class="inputfield_postalcode'.$this->renderRequired('postalcode').'">';
+            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['postalcode'].'</label>';
             $out .= '<input id="'.$name.'_postalcode" type="text" name="'.$name.'_postalcode" max="255" value="'.$value->postalcode.'">';
           $out .= '</div>';
-          $out .= '<div class="inputfield_city" >';
-            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['city'].$this->renderRequired('city').'</label>';
+          $out .= '<div class="inputfield_city'.$this->renderRequired('city').'">';
+            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['city'].'</label>';
             $out .= '<input id="'.$name.'_city" type="text" name="'.$name.'_city" max="255" value="'.$value->city.'">';
           $out .= '</div>';
         $out .= '</div>';
 
         $out .= '<div class="addressline">';
-          $out .= '<div class="inputfield_state">';
-            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['state'].$this->renderRequired('state').'</label>';
+          $out .= '<div class="inputfield_state'.$this->renderRequired('state').'">';
+            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['state'].'</label>';
             $out .= '<input id="'.$name.'_state" type="text" name="'.$name.'_state" max="255" value="'.$value->state.'">';
           $out .= '</div>';
         $out .= '</div>';
 
         $out .= '<div class="addressline">';
-          $out .= '<div class="inputfield_country">';
-            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['country'].$this->renderRequired('country').'</label>';
+          $out .= '<div class="inputfield_country'.$this->renderRequired('country').'">';
+            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['country'].'</label>';
             $out .= '<input id="'.$name.'_country" type="text" name="'.$name.'_country" max="255" value="'.$value->country.'">';
           $out .= '</div>';
         $out .= '</div>';
 
         if($this->get('input_coordinates')){
           $out .= '<div id="latlng" class="addressline">';
-            $out .= '<div class="inputfield_lat">';
-              $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['lat'].$this->renderRequired('lat').'</label>';
+            $out .= '<div class="inputfield_lat'.$this->renderRequired('lat').'">';
+              $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['lat'].'</label>';
               $out .= '<input id="'.$name.'_lat" type="text" name="'.$name.'_lat" max="255" value="'.$value->lat.'">';
             $out .= '</div>';
 
-            $out .= '<div class="inputfield_lng">';
-              $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['lng'].$this->renderRequired('lng').'</label>';
+            $out .= '<div class="inputfield_lng'.$this->renderRequired('lng').'">';
+              $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['lng'].'</label>';
               $out .= '<input id="'.$name.'_lat" type="text" name="'.$name.'_lng" max="255" value="'.$value->lng.'">';
             $out .= '</div>';
             $out .= '<p>'.sprintf(_x('You can use fe %s to get your coordinates.', 'simpleaddress'), '<a href="https://www.gps-coordinates.net/" target="_blank">www.gps-coordinates.net</a>').'</p>';
@@ -182,16 +188,30 @@ class InputfieldSimpleAddress extends Inputfield
           //check for required inputs
           $label = $this->getLabels()[$key];
           //sanitize all values as string and put them back to the input
-          $value->set($key, (string) $input->$name);
+          $value->set($key, (string) trim($input->$name));
           //track changes in the values
           $this->trackChange('value');
           //start validation
           if(in_array($key, $this->input_required)){
             if(empty($value[$key])){
               $this->error(sprintf(_x('Field "%s" is required', 'simpleaddress'), $label));
-
             }
           }
+          //validate geocodes if they are numbers
+          if(($key === 'lat') || ($key === 'lng')){
+            $coordinate = $value[$key];
+            if($coordinate){
+              //sanitize comma to dot if present
+              if (strpos($coordinate, ',') !== false) {
+                $coordinate = str_replace(',', '.', $coordinate);
+                $value->set($key, (string) $coordinate);
+              }
+              if (!is_numeric($coordinate)) {  // take care here if you expect 0 to be valid
+                  $this->error(sprintf(_x('Field "%s" is must be a number', 'simpleaddress'), $label));
+              }
+            }
+          }
+
         }
 
         return $this;
@@ -234,8 +254,6 @@ class InputfieldSimpleAddress extends Inputfield
           }
           $f->description = _x('If checked the input is required.', 'simpleaddress');
           $inputfields->append($f);
-
-
 
           // add inputfield markup for api notes
           $f = $this->modules->get('InputfieldMarkup');
