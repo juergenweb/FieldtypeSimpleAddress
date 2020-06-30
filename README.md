@@ -7,7 +7,7 @@ The coordinates will not be geocoded automatically, so you have to enter them ma
 
 ## What it does
 
-This fieldtype let you enter various data of an address such as street, number, postalcode,.... and optional latitude and longitude.
+This fieldtype let you enter various data of an address such as street, number, postalcode,.... and optional latitude and longitude (not visible in the image below).
 ![alt text](https://github.com/juergenweb/Processwire-Simple-Address-Inputfield-Fieldtype/blob/master/SimpleAddress.png?raw=true)
 
 ### Output the values in templates
