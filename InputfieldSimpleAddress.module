@@ -17,7 +17,7 @@ class InputfieldSimpleAddress extends Inputfield
           'summary' => 'An inputfield for entering various data including coordinates of an address.',
           'version' => 1,
           'permanent' => false,
-          'href' => 'https://github.com/juergenweb/Processwire-Simple-Address-Inputfield-Fieldtype',
+          'href' => 'https://github.com/juergenweb/FieldtypeSimpleAddress',
           'icon' => 'home',
           'requires' => [
               'FieldtypeSimpleAddress',
