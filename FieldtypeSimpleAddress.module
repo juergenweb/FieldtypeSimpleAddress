@@ -1,294 +1,213 @@
 <?php namespace ProcessWire;
 
 /**
- * Inputfield to enter address data and coordinates
+ * Fieldtype SimpleAddress stores address data in the database
  *
  * @author Jürgen Kern
  * @license Licensed under MIT
  */
 
-class FieldtypeSimpleAddress extends Inputfield
+class FieldtypeSimpleAddress extends Fieldtype
 {
-
-    public static function getModuleInfo()
-    {
-        return [
-          'title' => 'Inputfield SimpleAddress',
-          'summary' => 'An inputfield for entering various data including coordinates of an address.',
-          'version' => 1,
-          'permanent' => false,
-          'href' => 'https://github.com/juergenweb/FieldtypeSimpleAddress',
-          'icon' => 'home',
-          'requires' => [
-              'InputfieldSimpleAddress',
-              'PHP>=7.0.0',
-              'ProcessWire>=3'
-            ],
-          'author' => 'Jürgen Kern'
-      ];
-    }
-
 
     public function __construct()
     {
-        // set default values for inputfield properties
-        $this->set('input_street', '');
-        $this->set('input_number', '');
-        $this->set('input_postalcode', '');
-        $this->set('input_city', '');
-        $this->set('input_state', '');
-        $this->set('input_country', '');
-        $this->set('input_lat', '');
-        $this->set('input_lng', '');
-        // set default values for field configuration
-        $this->set('input_coordinates', false);
+        include_once(__DIR__ . '/SimpleAddress.php');
         parent::__construct();
     }
 
-    /**
-    * Per the Module interface, init() is called when the system is ready for API usage
-    */
+
+    public static function getModuleInfo()
+    {
+        return array(
+            'title' => 'Fieldtype SimpleAddress',
+            'summary' => 'Fieldtype that stores various elements of an address.',
+            'version' => 1,
+            'href' => 'https://github.com/juergenweb/FieldtypeSimpleAddress',
+            'icon' => 'home',
+            'installs' => 'InputfieldSimpleAddress',
+            'requires' => [
+                'PHP>=7.0.0',
+                'ProcessWire>=3'
+              ],
+            'author' => 'Jürgen Kern'
+        );
+    }
+
+
     public function init()
     {
-        $info = $this->getModuleInfo();
-        $version = $info['version'];
-        //Add CSS and JS files
-        $this->config->styles->add(config()->urls->{$this->className} . 'simpleaddress.css?v='.$version);
-        $this->config->scripts->add(config()->urls->{$this->className} . 'simpleaddress.js?v='.$version);
-        //Set default values for field configuration properties to make them reachable
-        $this->set('input_required', []);
-
-        return parent::init();
-    }
-
-    public function getLabels()
-    {
-      return [
-        'street' => _x('Street', 'simpleaddress'),
-        'number' => _x('Number', 'simpleaddress'),
-        'postalcode' => _x('Postalcode', 'simpleaddress'),
-        'city' => _x('City', 'simpleaddress'),
-        'state' => _x('State', 'simpleaddress'),
-        'country' => _x('Country', 'simpleaddress'),
-        'lat' => _x('Latitude', 'simpleaddress'),
-        'lng' => _x('Longitude', 'simpleaddress'),
-      ];
+        $this->addHookBefore('ProcessField::fieldSaved', $this, 'removeCoordinates');
     }
 
 
     /**
-    * Method to add required class on inputfields depending on configuration
-    * @param string $fieldname
-    * @return string
-    */
-    private function renderRequired(string $fieldname): string
-    {
-      if(in_array($fieldname, $this->input_required)){
-        return ' InputfieldStateRequired';
+	 * Before ProcessField::fieldSaved
+	 * Hook method to uncheck checkboxes of latitude and longitude before field save if they should not be displayed in the inputfield
+	 *
+	 * @param HookEvent $event
+	 */
+    public function removeCoordinates(HookEvent $event) {
+      $field = $event->arguments(0);
+
+      if ($field->type instanceof FieldtypeSimpleAddress) {
+
+          $coordinates = $field->input_coordinates;
+          $req = $field->input_required;
+
+          // Uncheck checkboxes of lat and lng if coordinates are disabled
+          if (!$coordinates) {
+              if(in_array('lat', $req) || in_array('lng', $req)){
+                //get keys of lat and lng
+                $keyLat = array_search('lat', $req);
+                $keyLng = array_search('lng', $req);
+                //remove them from the required array
+                unset($req[$keyLat]);
+                unset($req[$keyLng]);
+                //set the new array as value of field input_required
+                $field->input_required = $req;
+                // Populate modified arguments back
+                $event->arguments(0, $field);
+                $field->save(); //save the changes in inputfield configuration
+              }
+          }
+
       }
-      return '';
     }
 
 
     /**
-    * Render the inputs in the backend
-    * @return string
-    */
-    public function ___render(): string
+     * @param \ProcessWire\Page $page
+     * @param \ProcessWire\Field $field
+     * @return null|\ProcessWire\_Module|\ProcessWire\Inputfield|\ProcessWire\Module
+     * @throws \ProcessWire\WirePermissionException
+     * link the core inputfield to this fieldtype
+     */
+    public function getInputfield(Page $page, Field $field)
     {
-        $name = $this->attr('name'); // name of the inputfield
-
-        $out = '';
-
-        $value = $this->attr('value') ? $this->attr('value') : new SimpleAddress();
-
-        $out .= '<div class="addressline">';
-          $out .= '<div class="inputfield_street'.$this->renderRequired('street').'">';
-            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['street'].'</label>';
-            $out .= '<input id="'.$name.'_street" type="text" name="'.$name.'_street" max="255" value="'.$value->street.'">';
-          $out .= '</div>';
-          $out .= '<div class="inputfield_number'.$this->renderRequired('number').'">';
-            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['number'].'</label>';
-            $out .= '<input id="'.$name.'_number" type="text" name="'.$name.'_number" max="255" value="'.$value->number.'">';
-          $out .= '</div>';
-        $out .= '</div>';
-
-        $out .= '<div class="addressline">';
-          $out .= '<div class="inputfield_postalcode'.$this->renderRequired('postalcode').'">';
-            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['postalcode'].'</label>';
-            $out .= '<input id="'.$name.'_postalcode" type="text" name="'.$name.'_postalcode" max="255" value="'.$value->postalcode.'">';
-          $out .= '</div>';
-          $out .= '<div class="inputfield_city'.$this->renderRequired('city').'">';
-            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['city'].'</label>';
-            $out .= '<input id="'.$name.'_city" type="text" name="'.$name.'_city" max="255" value="'.$value->city.'">';
-          $out .= '</div>';
-        $out .= '</div>';
-
-        $out .= '<div class="addressline">';
-          $out .= '<div class="inputfield_state'.$this->renderRequired('state').'">';
-            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['state'].'</label>';
-            $out .= '<input id="'.$name.'_state" type="text" name="'.$name.'_state" max="255" value="'.$value->state.'">';
-          $out .= '</div>';
-        $out .= '</div>';
-
-        $out .= '<div class="addressline">';
-          $out .= '<div class="inputfield_country'.$this->renderRequired('country').'">';
-            $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['country'].'</label>';
-            $out .= '<input id="'.$name.'_country" type="text" name="'.$name.'_country" max="255" value="'.$value->country.'">';
-          $out .= '</div>';
-        $out .= '</div>';
-
-        if($this->get('input_coordinates')){
-          $out .= '<div id="latlng" class="addressline">';
-            $out .= '<div class="inputfield_lat'.$this->renderRequired('lat').'">';
-              $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['lat'].'</label>';
-              $out .= '<input id="'.$name.'_lat" type="text" name="'.$name.'_lat" max="255" value="'.$value->lat.'">';
-            $out .= '</div>';
-
-            $out .= '<div class="inputfield_lng'.$this->renderRequired('lng').'">';
-              $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['lng'].'</label>';
-              $out .= '<input id="'.$name.'_lat" type="text" name="'.$name.'_lng" max="255" value="'.$value->lng.'">';
-            $out .= '</div>';
-            $out .= '<p>'.sprintf(_x('You can use fe %s to get your coordinates.', 'simpleaddress'), '<a href="https://www.gps-coordinates.net/" target="_blank">www.gps-coordinates.net</a>').'</p>';
-          $out .= '</div>';
-        }
-        return $out;
-
+        return $this->modules->get('InputfieldSimpleAddress');
     }
 
 
     /**
-     * Process the input after a form submission($_POST or $_GET data) took place. Sanitize/validate it, and populate the value back to this inputfield.
-     * First line of defense for values coming directly from a form
-     * That function literally takes the value from $input and populates it to the 'value' attribute of the Inputfield object.
-     * @param WireInputData $input
-     * @return this
+     * @param \ProcessWire\Field $field
+     * @return null|\ProcessWire\_Module|\ProcessWire\Inputfield|\ProcessWire\Module
+     * User is not allowed to switch from this fieldtype to another
+     */
+    public function ___getCompatibleFieldtypes(Field $field)
+    {
+        return null;
+    }
+
+
+    /**
+     * Return the blank value for this fieldtype, whether that is a blank string, zero value, blank object or array
+     * In this case create a new instance of this fieldtype for wakeupValue
+     * @param Page $page
+     * @param Field $field
+     * @return object
      *
      */
-    public function ___processInput(WireInputData $input)
+    public function getBlankValue(Page $page, Field $field)
     {
-        $name = $this->attr('name'); // self choosen name of the inputfield
-        $value = $this->attr('value');
-        $coordinates = $this->input_coordinates;
+        return new SimpleAddress();
+    }
 
 
-        //create an array of the inputfield names to set processed values back afterwards
-        $inputfields = [ // name in db => name input element
-          'street' => $name . '_street',
-          'number' => $name . '_number',
-          'postalcode' => $name . '_postalcode',
-          'city' => $name . '_city',
-          'country' => $name . '_country',
-          'state' => $name . '_state',
-          'lat' => $name . '_lat',
-          'lng' => $name . '_lng',
-        ];
-
-        foreach ($inputfields as $key => $name) {
-          //check for required inputs
-          $label = $this->getLabels()[$key];
-          //sanitize all values as string and put them back to the input
-          $value->set($key, (string) trim($input->$name));
-          //track changes in the values
-          $this->trackChange('value');
-          //start validation
-          if(in_array($key, $this->input_required)){
-            if(empty($value[$key])){
-              $this->error(sprintf(_x('Field "%s" is required', 'simpleaddress'), $label));
-            }
-          }
-          //validate geocodes if they are numbers
-          if(($key === 'lat') || ($key === 'lng')){
-            $coordinate = $value[$key];
-            if($coordinate){
-              //sanitize comma to dot if present
-              if (strpos($coordinate, ',') !== false) {
-                $coordinate = str_replace(',', '.', $coordinate);
-                $value->set($key, (string) $coordinate);
-              }
-              if (!is_numeric($coordinate)) {  // take care here if you expect 0 to be valid
-                  $this->error(sprintf(_x('Field "%s" is must be a number', 'simpleaddress'), $label));
-              }
-            }
-          }
-
-        }
-
-        return $this;
-
-      }
+   /**
+    * @param \ProcessWire\Page $page
+    * @param \ProcessWire\Field $field
+    * @param int|object|\ProcessWire\WireArray|string $value
+    * @return int|null|object|\ProcessWire\ObjectDimensions|\ProcessWire\WireArray|string
+    *
+    * Fieldtype sanitization/validation -> every value from this fieldtype that will be displayed on the page runs through this method
+    */
+     public function sanitizeValue(Page $page, Field $field, $value)
+     {
+         if (!$value instanceof SimpleAddress) {
+             $value = $this->getBlankValue($page, $field);
+         }
+         return $value;
+     }
 
 
-      /**
-       * Add additional configuration fields
-       *
-       * @return InputfieldWrapper
-       *
-       */
-      // Add additional configuration fields
-      public function ___getConfigInputfields(): InputfieldWrapper
+     /**
+      * Convert from DB storage to API value.
+      *
+      * @param Page $page
+      * @param Field $field
+      * @param string|int|array $value
+      * @return object $address
+      *
+      */
+      public function wakeupValue(Page $page, Field $field, $value)
       {
 
-        //get all parent input fields
-          $inputfields = parent::___getConfigInputfields();
+          $address = $this->getBlankValue($page, $field);
 
-          // get rid of required config field, because we cannot use it here
-          $inputfields->remove('required');
-
-          // checkbox field to configure if coordinate fields should be displayed or not
-          $f = $this->modules->get('InputfieldCheckbox');
-          $f->label = _x('Show coordinate fields (latitude and longitude)', 'simpleaddress');
-          $f->checkboxLabel = _x('Show fields', 'simpleaddress');
-          $f->attr('name', 'input_coordinates');
-          $f->attr('checked', $this->input_coordinates == '1' ? 'checked' : '');
-          $f->description = _x('If checked 2 additional fields for entering longitude and latitude will be displayed.', 'dimensions');
-          $inputfields->append($f);
-
-          // checkbox field to make specific fields required
-          $f = $this->modules->get('InputfieldCheckboxes');
-          $f->label = _x('Required fields', 'simpleaddress');
-          $f->attr('name', 'input_required');
-          foreach($this->getLabels() as $value => $label) {
-            $checked = (in_array($value,$this->input_required)) ? 'checked' : '';
-            $f->addOption($value, $label, ['checked' => $checked]);
-          }
-          $f->description = _x('If checked the input is required.', 'simpleaddress');
-          $inputfields->append($f);
-
-          // add inputfield markup for api notes
-          $f = $this->modules->get('InputfieldMarkup');
-          $f->label = _x('API Notes', 'simpleaddress');
-          $f->description = _x('The following can be used in your templates:', 'simpleaddress');
-          $f->value .= '<pre>';
-          $f->value .= '$page->' . $this->name . '->street' . PHP_EOL;
-          $f->value .= '$page->' . $this->name . '->number' . PHP_EOL;
-          $f->value .= '$page->' . $this->name . '->postalcode' . PHP_EOL;
-          $f->value .= '$page->' . $this->name . '->city' . PHP_EOL;
-          $f->value .= '$page->' . $this->name . '->state' . PHP_EOL;
-          $f->value .= '$page->' . $this->name . '->country' . PHP_EOL;
-          $f->value .= '$page->' . $this->name . '->lat' . PHP_EOL;
-          $f->value .= '$page->' . $this->name . '->lng' . PHP_EOL;
-          $f->value .= '$page->' . $this->name . PHP_EOL;
-          $f->value .= '</pre>';
-          $inputfields->add($f);
-
-          // output all input fields (parent and custom)
-          return $inputfields;
+          // sanitize and populate the address object for usage on frontend
+          $address->street = (string)$value['street'];
+          $address->number = (string)$value['number'];
+          $address->postalcode = (string)$value['postalcode'];
+          $address->city = (string)$value['city'];
+          $address->state = (string)$value['state'];
+          $address->country = (string)$value['country'];
+          $address->lat = (string)$value['lat'];
+          $address->lng = (string)$value['lng'];
+          return $address;
       }
 
 
       /**
-       * Allow these fields to get overwritten by user on per template base
-       * @param \ProcessWire\Field $field
+       * Convert from API to DB storage value (opposition of wakeupValue).
+       *
+       * @param Page $page
+       * @param Field $field
+       * @param string|int|array|object $value
        * @return array
        *
        */
-      public function getConfigAllowContext(Field $field): array
+      public function sleepValue(Page $page, Field $field, $value): array
       {
-          return [
-            'input_coordinates',
-            'input_required',
+
+          // check if value is object of the correct class type and throw error if value is not of the right type
+          if (!$value instanceof SimpleAddress) {
+              throw new \Exception(_x('Expecting an instance of SimpleAddress', 'simpleaddress'));
+          }
+
+          // sanitzize values and prepare it for storage into the DB
+          $sleepValue = [
+              'street' => (string) $value->street ? $value->street : NULL,
+              'number' => (string) $value->number ? $value->number : NULL,
+              'postalcode' => (string) $value->postalcode ? $value->postalcode : NULL,
+              'city' => (string) $value->city ? $value->city : NULL,
+              'state' => (string) $value->state ? $value->state : NULL,
+              'country' => (string) $value->country ? $value->country : NULL,
+              'lat' => (float) $value->lat ? $value->lat : NULL,
+              'lng' => (float) $value->lng ? $value->lng : NULL,
           ];
+
+          return $sleepValue;
+      }
+
+
+      /**
+       * @param \ProcessWire\Field $field
+       * @return null|\ProcessWire\_Module|\ProcessWire\Inputfield|\ProcessWire\Module
+       */
+      public function getDatabaseSchema(Field $field)
+      {
+          $schema = parent::getDatabaseSchema($field);
+
+          $schema['street'] = 'TINYTEXT DEFAULT NULL';
+          $schema['number'] = 'TINYTEXT  DEFAULT NULL';
+          $schema['postalcode'] = 'TINYTEXT DEFAULT NULL';
+          $schema['city'] = 'TINYTEXT DEFAULT NULL';
+          $schema['state'] = 'TINYTEXT DEFAULT NULL';
+          $schema['country'] = 'TINYTEXT DEFAULT NULL';
+          $schema['lat'] = 'DOUBLE DEFAULT NULL';
+          $schema['lng'] = 'DOUBLE DEFAULT NULL';
+          return $schema;
       }
 
 }
