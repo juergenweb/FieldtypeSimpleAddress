@@ -20,7 +20,7 @@ class FieldtypeSimpleAddress extends Inputfield
           'href' => 'https://github.com/juergenweb/FieldtypeSimpleAddress',
           'icon' => 'home',
           'requires' => [
-              'FieldtypeSimpleAddress',
+              'InputfieldSimpleAddress',
               'PHP>=7.0.0',
               'ProcessWire>=3'
             ],
