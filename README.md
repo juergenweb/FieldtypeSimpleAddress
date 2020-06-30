@@ -1,9 +1,12 @@
 # Processwire-Simple-Address-Inputfield-Fieldtype
 A simple inputfield and fieldtype to store an address. There is no special functionality inside, but the big advantage is, that you don´t need to use multiple fields in ProcessWire and each field of the address is fully searchable. Adding only 1 field is much more comfortable.
+As an addition you can add longitude and latitude of an address for usage in maps. 
+
+The coordinates will not be geocoded automatically, so you have to enter them manually. The advantage is that you do not need an API-Key or a registration at Google or other providers, so you are completely independent and you can use these coordinates in your prefered maps.
 
 ## What it does
 
-This fieldtype let you enter various data of an address such as street, number, postalcode,....
+This fieldtype let you enter various data of an address such as street, number, postalcode,.... and optional latitude and longitude.
 ![alt text](https://github.com/juergenweb/Processwire-Simple-Address-Inputfield-Fieldtype/blob/master/SimpleAddress.png?raw=true)
 
 ### Output the values in templates
@@ -17,6 +20,11 @@ echo $page->fieldname->postalcode;
 echo $page->fieldname->city;
 echo $page->fieldname->state;
 echo $page->fieldname->country;
+```
+You can grab the coordinates with
+```
+echo $page->fieldname->lat;
+echo $page->fieldname->lng;
 ```
 
 You can render a complete address string like
@@ -42,6 +50,20 @@ This will output the following HTML:
 ```
 <address class="myclass">MyStreet 12 - 4020 Linz - Upper Austria - Austria</address>
 ```
+
+There is also a method to get latitude and longitude in one string
+
+```
+echo $page->address->renderLatLng();
+```
+
+This will output fe 
+
+```
+41.12345678, 23.987654
+```
+and can be used im maps just like Leaflet Map or others.
+
 
 As you can see you have 2 options (optional) to control your output:
 
