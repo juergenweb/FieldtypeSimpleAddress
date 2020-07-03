@@ -172,7 +172,7 @@ class FieldtypeSimpleAddress extends Fieldtype
 
           // check if value is object of the correct class type and throw error if value is not of the right type
           if (!$value instanceof SimpleAddress) {
-              throw new \Exception(_x('Expecting an instance of SimpleAddress', 'simpleaddress'));
+              throw new \Exception($this->_('Expecting an instance of SimpleAddress'));
           }
 
           // sanitzize values and prepare it for storage into the DB
