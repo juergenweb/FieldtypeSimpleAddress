@@ -14,7 +14,7 @@ class InputfieldSimpleAddress extends Inputfield
     {
         return [
           'title' => 'Inputfield SimpleAddress',
-          'summary' => 'An inputfield for entering various data including coordinates of an address.',
+          'summary' => 'Renders an inputfield for entering various data including coordinates of an address.',
           'version' => 1,
           'permanent' => false,
           'href' => 'https://github.com/juergenweb/FieldtypeSimpleAddress',
@@ -61,17 +61,18 @@ class InputfieldSimpleAddress extends Inputfield
         return parent::init();
     }
 
-    public function getLabels()
+    /* Method to get the labels of the inputfields */
+    public function getLabels(): array
     {
       return [
-        'street' => _x('Street', 'simpleaddress'),
-        'number' => _x('Number', 'simpleaddress'),
-        'postalcode' => _x('Postalcode', 'simpleaddress'),
-        'city' => _x('City', 'simpleaddress'),
-        'state' => _x('State', 'simpleaddress'),
-        'country' => _x('Country', 'simpleaddress'),
-        'lat' => _x('Latitude', 'simpleaddress'),
-        'lng' => _x('Longitude', 'simpleaddress'),
+        'street' => $this->_('Street'),
+        'number' => $this->_('Number'),
+        'postalcode' => $this->_('Postalcode'),
+        'city' => $this->_('City'),
+        'state' => $this->_('State'),
+        'country' => $this->_('Country'),
+        'lat' => $this->_('Latitude'),
+        'lng' => $this->_('Longitude'),
       ];
     }
 
@@ -149,7 +150,7 @@ class InputfieldSimpleAddress extends Inputfield
               $out .= '<label class="InputfieldHeader uk-form-label InputfieldStateToggle">'.$this->getLabels()['lng'].'</label>';
               $out .= '<input id="'.$name.'_lat" type="text" name="'.$name.'_lng" max="255" value="'.$value->lng.'">';
             $out .= '</div>';
-            $out .= '<p>'.sprintf(_x('You can use fe %s to get your coordinates.', 'simpleaddress'), '<a href="https://www.gps-coordinates.net/" target="_blank">www.gps-coordinates.net</a>').'</p>';
+            $out .= '<p>'.sprintf($this->_('You can use fe %s to get your coordinates.'), '<a href="https://www.gps-coordinates.net/" target="_blank">www.gps-coordinates.net</a>').'</p>';
           $out .= '</div>';
         }
         return $out;
@@ -194,7 +195,7 @@ class InputfieldSimpleAddress extends Inputfield
           //start validation
           if(in_array($key, $this->input_required)){
             if(empty($value[$key])){
-              $this->error(sprintf(_x('Field "%s" is required', 'simpleaddress'), $label));
+              $this->error(sprintf($this->_('Field "%s" is required'), $label));
             }
           }
           //validate geocodes if they are numbers
@@ -207,7 +208,7 @@ class InputfieldSimpleAddress extends Inputfield
                 $value->set($key, (string) $coordinate);
               }
               if (!is_numeric($coordinate)) {  // take care here if you expect 0 to be valid
-                  $this->error(sprintf(_x('Field "%s" is must be a number', 'simpleaddress'), $label));
+                  $this->error(sprintf($this->_('Field "%s" is must be a number'), $label));
               }
             }
           }
@@ -237,28 +238,28 @@ class InputfieldSimpleAddress extends Inputfield
 
           // checkbox field to configure if coordinate fields should be displayed or not
           $f = $this->modules->get('InputfieldCheckbox');
-          $f->label = _x('Show coordinate fields (latitude and longitude)', 'simpleaddress');
-          $f->checkboxLabel = _x('Show fields', 'simpleaddress');
+          $f->label = $this->_('Show coordinate fields (latitude and longitude)');
+          $f->checkboxLabel = $this->_('Show fields');
           $f->attr('name', 'input_coordinates');
           $f->attr('checked', $this->input_coordinates == '1' ? 'checked' : '');
-          $f->description = _x('If checked 2 additional fields for entering longitude and latitude will be displayed.', 'dimensions');
+          $f->description = $this->_('If checked 2 additional fields for entering longitude and latitude will be displayed.', 'dimensions');
           $inputfields->append($f);
 
           // checkbox field to make specific fields required
           $f = $this->modules->get('InputfieldCheckboxes');
-          $f->label = _x('Required fields', 'simpleaddress');
+          $f->label = $this->_('Required fields');
           $f->attr('name', 'input_required');
           foreach($this->getLabels() as $value => $label) {
             $checked = (in_array($value,$this->input_required)) ? 'checked' : '';
             $f->addOption($value, $label, ['checked' => $checked]);
           }
-          $f->description = _x('If checked the input is required.', 'simpleaddress');
+          $f->description = $this->_('If checked the input is required.');
           $inputfields->append($f);
 
           // add inputfield markup for api notes
           $f = $this->modules->get('InputfieldMarkup');
-          $f->label = _x('API Notes', 'simpleaddress');
-          $f->description = _x('The following can be used in your templates:', 'simpleaddress');
+          $f->label = $this->_('API Notes');
+          $f->description = $this->_('The following can be used in your templates:');
           $f->value .= '<pre>';
           $f->value .= '$page->' . $this->name . '->street' . PHP_EOL;
           $f->value .= '$page->' . $this->name . '->number' . PHP_EOL;
