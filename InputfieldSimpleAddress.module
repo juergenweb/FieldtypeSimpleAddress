@@ -208,7 +208,7 @@ class InputfieldSimpleAddress extends Inputfield
                 $value->set($key, (string) $coordinate);
               }
               if (!is_numeric($coordinate)) {  // take care here if you expect 0 to be valid
-                  $this->error(sprintf($this->_('Field "%s" is must be a number'), $label));
+                  $this->error(sprintf($this->_('Field "%s" must be a number'), $label));
               }
             }
           }
